@@ -1,12 +1,12 @@
-#To run the Resume Matcher project locally, follow these steps:
+# To run the Resume Matcher project locally, follow these steps:
 
-##Clone the repository:
+## Clone the repository:
 
 git clone https://github.com/<your-username>/resume_matcher.git
 cd resume_matcher
 
 
-##Setup backend (Flask):
+## Setup backend (Flask):
 
 cd backend
 python -m venv venv
@@ -14,7 +14,7 @@ python -m venv venv
 pip install -r requirements.txt
 
 
-##Setup frontend (React):
+## Setup frontend (React):
 
 cd ../frontend
 npm install
