@@ -19,7 +19,9 @@ pip install -r requirements.txt
 ## Setup frontend (React):
 
 cd ../frontend
+
 npm install
+
 npm start
 
 
