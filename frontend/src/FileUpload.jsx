@@ -39,11 +39,11 @@ function FileUpload({ setResult }) {
         <input type="file" accept=".pdf" onChange={(e) => setResume(e.target.files[0])} />
       </div>
       <div>
-        <label>Job Description PDF:</label>
+        <label>Job description PDF:</label>
         <input type="file" accept=".pdf" onChange={(e) => setJd(e.target.files[0])} />
       </div>
       <div>
-        <label>Or paste Job Description:</label>
+        <label>Or paste job description:</label>
         <textarea
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
