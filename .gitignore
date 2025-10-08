@@ -34,4 +34,4 @@ backend/*.pyd
 backend/*.sqlite3
 backend/instance/
 backend/.env
-backend/saved_models
+backend/uploads/
