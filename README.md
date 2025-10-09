@@ -43,8 +43,3 @@ Recruitment processes often involve manual screening of hundreds of resumes, whi
 5. Generate a match score and rank candidates.
 
 
-## Project UI
-
-<img src="frontend/public/resume_matcher.png" alt="Resume Matcher" width="200" />
-
-
