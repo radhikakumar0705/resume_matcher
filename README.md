@@ -42,3 +42,9 @@ Recruitment processes often involve manual screening of hundreds of resumes, whi
 4. Identify matched and missing skills.
 5. Generate a match score and rank candidates.
 
+
+## Project UI
+
+![Resume Matcher](frontend/public/resume_matcher.png)
+
+
