@@ -45,6 +45,6 @@ Recruitment processes often involve manual screening of hundreds of resumes, whi
 
 ## Project UI
 
-![Resume Matcher](frontend/public/resume_matcher.png)
+<img src="frontend/public/resume_matcher.png" alt="Resume Matcher" width="200" />
 
 
