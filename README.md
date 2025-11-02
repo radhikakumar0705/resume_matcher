@@ -16,7 +16,6 @@ Recruitment processes often involve manual screening of hundreds of resumes, whi
 - **Dynamic Skill Extraction:** Identifies matched and missing skills for each candidate.
 - **Candidate Ranking:** Combines skill matching and semantic similarity scores.
 - **Frontend & Backend:** Built with React (frontend) and Python Flask (backend).
-- **Database:** MySQL integration for storing resumes, job descriptions, and results.
 
 ---
 
@@ -29,7 +28,6 @@ Recruitment processes often involve manual screening of hundreds of resumes, whi
   - `scikit-learn` (cosine similarity)
   - `joblib` (save/load pipeline)
   - `numpy`, `pandas` (data processing)
-- **Database:** MySQL
 - **Utilities:** `PyPDF2`, `python-docx` (for reading resumes), string/list operations for skill extraction
 
 ---
