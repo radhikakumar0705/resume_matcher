@@ -37,3 +37,6 @@ backend/.env
 backend/uploads/
 __pycache__/
 *.pyc
+
+# Stored matches (SQLite)
+backend/data/
