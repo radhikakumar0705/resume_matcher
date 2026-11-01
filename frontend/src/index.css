@@ -83,3 +83,12 @@ button:hover {
   background: #1a1a1a;
   border-radius: 5px;
 }
+
+button:disabled {
+  background-color: #555;
+  cursor: wait;
+}
+
+.error {
+  color: #ff6b6b;
+}

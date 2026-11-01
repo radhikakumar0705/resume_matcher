@@ -1,34 +1,51 @@
 import React, { useState } from "react";
 
+const API_URL = process.env.REACT_APP_API_URL || "http://127.0.0.1:5000";
+
 function FileUpload({ setResult }) {
   const [resume, setResume] = useState(null);
   const [jd, setJd] = useState(null);
   const [jobDescription, setJobDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
 
-    if (!resume && !jd && !jobDescription) {
-      alert("Please upload a resume or provide a job description.");
+    if (!resume) {
+      setError("Please upload a resume PDF.");
+      return;
+    }
+    if (!jd && !jobDescription.trim()) {
+      setError("Please upload a job description PDF or paste one.");
       return;
     }
 
     const formData = new FormData();
-    if (resume) formData.append("resumes", resume);
+    formData.append("resumes", resume);
     if (jd) formData.append("job_description_file", jd);
-    if (jobDescription) formData.append("job_description", jobDescription);
+    if (jobDescription.trim()) formData.append("job_description", jobDescription);
 
+    setLoading(true);
+    setResult(null);
     try {
-      const res = await fetch("http://127.0.0.1:5000/match", {
+      const res = await fetch(`${API_URL}/match`, {
         method: "POST",
         body: formData,
       });
 
       const data = await res.json();
-      setResult(data[0]);
+      if (!res.ok) {
+        setError(data.error || `Server error (${res.status})`);
+        return;
+      }
+      setResult(data);
     } catch (err) {
       console.error(err);
-      alert("Error contacting server");
+      setError("Could not reach the server. Is the backend running?");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,7 +66,10 @@ function FileUpload({ setResult }) {
           onChange={(e) => setJobDescription(e.target.value)}
         />
       </div>
-      <button type="submit">Match Resume</button>
+      {error && <p className="error">{error}</p>}
+      <button type="submit" disabled={loading}>
+        {loading ? "Matching..." : "Match Resume"}
+      </button>
     </form>
   );
 }

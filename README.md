@@ -12,9 +12,9 @@ Recruitment processes often involve manual screening of hundreds of resumes, whi
 
 ## Features
 
-- **Semantic Matching:** Measures the contextual similarity between resumes and job descriptions.
-- **Dynamic Skill Extraction:** Identifies matched and missing skills for each candidate.
-- **Candidate Ranking:** Combines skill matching and semantic similarity scores.
+- **Semantic Matching:** Measures the contextual similarity between a resume and a job description using `all-MiniLM-L6-v2` embeddings (long documents are embedded in chunks and averaged, so nothing past the model's 256-token limit is dropped).
+- **Skill Extraction:** Finds skills from a curated vocabulary (`backend/model_pipeline/skills.py`) in both documents and reports which job skills the resume has and which it is missing.
+- **Combined Score:** `score = 0.6 × semantic similarity + 0.4 × skill coverage` (similarity alone if the job description names no known skills).
 - **Frontend & Backend:** Built with React (frontend) and Python Flask (backend).
 
 ---
@@ -22,22 +22,46 @@ Recruitment processes often involve manual screening of hundreds of resumes, whi
 ## Libraries and Frameworks Used
 
 - **Backend:** Python, Flask
-- **Frontend:** React, Tailwind CSS
+- **Frontend:** React
 - **Machine Learning / NLP:**
   - `sentence-transformers` (for embeddings)
-  - `scikit-learn` (cosine similarity)
-  - `joblib` (save/load pipeline)
-  - `numpy`, `pandas` (data processing)
-- **Utilities:** `PyPDF2`, `python-docx` (for reading resumes), string/list operations for skill extraction
+  - `numpy` (cosine similarity)
+- **Utilities:** `PyMuPDF` (reading PDF resumes and job descriptions)
 
 ---
 
 ## How It Works
 
-1. Clean resume and job description text using `clean_text()`.
-2. Extract skills from both resumes and job descriptions using `extract_skills()`.
+1. Extract text from the uploaded PDF(s) with PyMuPDF.
+2. Extract skills from the resume and job description with `extract_skills()`.
 3. Compute semantic similarity using transformer embeddings.
 4. Identify matched and missing skills.
-5. Generate a match score and rank candidates.
+5. Blend similarity and skill coverage into a 0-100 match score.
 
+To add skills, add an entry to `SKILLS` in `backend/model_pipeline/skills.py` (display name -> regex of aliases).
 
+---
+
+## Running Locally
+
+Backend (Python 3.10-3.12):
+
+```bash
+cd backend
+python -m venv venv
+venv/Scripts/activate      # Windows; on macOS/Linux: source venv/bin/activate
+pip install -r requirements.txt
+python app.py              # set FLASK_DEBUG=1 for debug mode
+```
+
+The first run downloads the embedding model (~90 MB). The API listens on http://127.0.0.1:5000.
+
+Frontend:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Set `REACT_APP_API_URL` if the backend is not at http://127.0.0.1:5000.

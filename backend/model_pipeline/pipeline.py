@@ -1,50 +1,56 @@
-import joblib
+import numpy as np
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-from .utils import extract_skills, clean_text
+from .utils import extract_skills, normalize_whitespace
+
+# all-MiniLM-L6-v2 truncates input at 256 word-piece tokens, so long resumes
+# are embedded in chunks of this many words and the chunk embeddings averaged.
+CHUNK_WORDS = 150
+
+# Final score = blend of semantic similarity and share of JD skills covered.
+SEMANTIC_WEIGHT = 0.6
+SKILL_WEIGHT = 0.4
+
 
 class ModelPipeline:
-    def __init__(self, path=None):
-        """
-        path: path to saved joblib pipeline (optional)
-        """
-        self.model = None
-        self.skill_list = None
-        self.embedder = SentenceTransformer('all-MiniLM-L6-v2')  # small & fast
-        if path:
-            self.load(path)
+    def __init__(self, model_name="all-MiniLM-L6-v2"):
+        self.embedder = SentenceTransformer(model_name)  # small & fast
 
-    def load(self, path):
-        data = joblib.load(path)
-        self.model = data.get("model", None)
-        self.skill_list = data.get("skill_list", None)
-
-    def save(self, path):
-        joblib.dump({
-            "model": self.model,
-            "skill_list": self.skill_list
-        }, path)
+    def embed(self, text):
+        """Embed text of any length as the normalized mean of its chunk embeddings."""
+        words = text.split()
+        chunks = [" ".join(words[i:i + CHUNK_WORDS]) for i in range(0, len(words), CHUNK_WORDS)]
+        embs = self.embedder.encode(chunks, normalize_embeddings=True)
+        mean = embs.mean(axis=0)
+        return mean / np.linalg.norm(mean)
 
     def compute_similarity(self, jd_text, resume_text):
-        """Compute semantic similarity using embeddings"""
-        jd_emb = self.embedder.encode([jd_text])
-        resume_emb = self.embedder.encode([resume_text])
-        score = cosine_similarity(jd_emb, resume_emb)[0][0] * 100
-        return score
+        """Semantic similarity between JD and resume, 0-100"""
+        cosine = float(np.dot(self.embed(jd_text), self.embed(resume_text)))
+        return max(cosine, 0.0) * 100
 
     def predict(self, jd_text, resume_text):
-        """Return match score, matched skills, missing skills"""
-        jd_text = clean_text(jd_text)
-        resume_text = clean_text(resume_text)
+        """Return a dict with the overall score, its parts, and matched/missing skills"""
+        jd_text = normalize_whitespace(jd_text)
+        resume_text = normalize_whitespace(resume_text)
 
-        # Dynamic skill extraction from JD
-        jd_skills = extract_skills(jd_text)
-        resume_skills = extract_skills(resume_text)
+        jd_skills = set(extract_skills(jd_text))
+        resume_skills = set(extract_skills(resume_text))
+        matched = sorted(jd_skills & resume_skills)
+        missing = sorted(jd_skills - resume_skills)
 
-        matched = list(set(jd_skills) & set(resume_skills))
-        missing = list(set(jd_skills) - set(resume_skills))
+        semantic_score = self.compute_similarity(jd_text, resume_text)
+        if jd_skills:
+            skill_score = len(matched) / len(jd_skills) * 100
+            score = SEMANTIC_WEIGHT * semantic_score + SKILL_WEIGHT * skill_score
+        else:
+            # No recognizable skills in the JD: fall back to similarity alone
+            skill_score = None
+            score = semantic_score
 
-        # Compute semantic similarity
-        score = self.compute_similarity(jd_text, resume_text)
-
-        return score, matched, missing
+        return {
+            "score": round(score, 2),
+            "semantic_score": round(semantic_score, 2),
+            "skill_score": None if skill_score is None else round(skill_score, 2),
+            "matched_skills": matched,
+            "missing_skills": missing,
+        }
