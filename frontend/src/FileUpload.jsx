@@ -51,17 +51,18 @@ function FileUpload({ setResult }) {
 
   return (
     <form onSubmit={handleSubmit} className="upload-form">
-      <div>
-        <label>Resume PDF:</label>
+      <div className="form-group">
+        <label>Resume PDF</label>
         <input type="file" accept=".pdf" onChange={(e) => setResume(e.target.files[0])} />
       </div>
-      <div>
-        <label>Job description PDF:</label>
+      <div className="form-group">
+        <label>Job Description PDF</label>
         <input type="file" accept=".pdf" onChange={(e) => setJd(e.target.files[0])} />
       </div>
-      <div>
-        <label>Or paste job description:</label>
+      <div className="form-group">
+        <label>Or Paste Job Description</label>
         <textarea
+          placeholder="Paste the job requirements here..."
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
         />

@@ -56,6 +56,8 @@ python app.py              # set FLASK_DEBUG=1 for debug mode
 
 The first run downloads the embedding model (~90 MB). The API listens on http://127.0.0.1:5000.
 
+Optional AI resume tips: install [Ollama](https://ollama.com), run `ollama pull llama3.2` and `ollama serve`. The backend asks it for tips on the missing skills; set `OLLAMA_MODEL` to use a different model. Without Ollama running, matching still works and the tips section shows a hint to start it.
+
 Frontend:
 
 ```bash

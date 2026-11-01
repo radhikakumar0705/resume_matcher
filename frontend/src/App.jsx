@@ -6,16 +6,18 @@ function App() {
   const [result, setResult] = useState(null);
 
   return (
-    <div className="container" style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1 style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+    <div className="container">
+      {/* Structural layout wrapping your app brand */}
+      <div className="app-header">
         <img
           src={`${process.env.PUBLIC_URL}/icon.webp`}
-          alt="icon"
-          style={{ width: "40px", height: "40px" }}
+          alt="App Icon"
+          className="app-icon"
         />
-        Resume Matcher
-      </h1>
-      <div style={{ marginTop: "20px" }}>
+        <h1 className="app-title">Resume Matcher</h1>
+      </div>
+      
+      <div className="main-content">
         <FileUpload setResult={setResult} />
         {result && <Result data={result} />}
       </div>

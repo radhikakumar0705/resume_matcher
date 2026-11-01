@@ -3,12 +3,49 @@ from flask_cors import CORS
 from model_pipeline.pipeline import ModelPipeline
 from model_pipeline.utils import extract_text_from_pdf_bytes
 import os
+import requests  # Added to communicate with your local Ollama instance
 
 app = Flask(__name__)
 CORS(app)
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB per request
 
 pipeline = ModelPipeline()
+
+
+def generate_ollama_tips(missing_skills):
+    """
+    Queries local Ollama instance to generate quick, actionable modifications
+    to bridge the discovered skill gap.
+    """
+    ollama_url = "http://localhost:11434/api/generate"
+
+    # Format missing skills array cleanly for the model context
+    skills_str = ", ".join(missing_skills[:10]) if missing_skills else "None"
+
+    prompt = f"""
+    You are an expert technical resume reviewer. The candidate is missing these specific keywords/skills: {skills_str}.
+
+    Provide exactly 3 short, high-impact bullet points explaining how they can update their resume bullets to subtly showcase or imply experience with these items.
+    Get straight to the bullets. Do not include intro greetings, conversational fillers, or concluding remarks.
+    """
+
+    payload = {
+        # Must be a model you've pulled (`ollama list`); override with OLLAMA_MODEL
+        "model": os.environ.get("OLLAMA_MODEL", "llama3.2"),
+        "prompt": prompt,
+        "stream": False     # Simple synchronous single-string response
+    }
+
+    try:
+        # First call after Ollama starts loads the model and can take ~30s
+        response = requests.post(ollama_url, json=payload, timeout=60)
+        if response.status_code == 200:
+            return response.json().get("response", "").strip()
+        return "⚠️ Could not generate custom tips from the local model."
+    except requests.exceptions.ConnectionError:
+        return "💡 Start 'ollama serve' in your terminal to unlock automatic tailored resume tips."
+    except Exception as e:
+        return f"⚠️ Error generating AI optimization tips: {str(e)}"
 
 
 def read_pdf_upload(file, label):
@@ -48,7 +85,13 @@ def match_resume():
     if not jd_text:
         return jsonify({"error": "No job description provided"}), 400
 
-    return jsonify(pipeline.predict(jd_text, resume_text))
+    result = pipeline.predict(jd_text, resume_text)
+
+    # --- OLLAMA INTEGRATION ---
+    # Fetch tailored feedback for the missing skills
+    result["ai_tips"] = generate_ollama_tips(result["missing_skills"])
+
+    return jsonify(result)
 
 
 @app.errorhandler(413)
