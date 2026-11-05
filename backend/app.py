@@ -3,6 +3,7 @@ from flask_cors import CORS
 from model_pipeline.pipeline import ModelPipeline
 from model_pipeline.utils import extract_text_from_pdf_bytes
 from suggestions import generate_suggestions, SuggestionError
+import agent
 import db
 import io
 import os
@@ -13,6 +14,7 @@ app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10 MB per request
 
 pipeline = ModelPipeline()
 db.init_db()
+db.fail_stale_runs()
 
 
 def read_pdf_upload(file, label):
@@ -126,6 +128,35 @@ def download_resume(match_id):
         return jsonify({"error": "Match not found"}), 404
     name, data = found
     return send_file(io.BytesIO(data), mimetype="application/pdf", download_name=name)
+
+
+@app.route("/agent/runs", methods=["POST"])
+def start_agent_run():
+    body = request.get_json(silent=True) or {}
+    match = db.get_match(body.get("match_id"))
+    if not match:
+        return jsonify({"error": "Pick a saved match to tailor"}), 404
+    run_id = agent.start_run(pipeline, match)
+    return jsonify(db.get_agent_run(run_id)), 202
+
+
+@app.route("/agent/runs", methods=["GET"])
+def list_agent_runs():
+    match_id = request.args.get("match_id", type=int)
+    return jsonify(db.list_agent_runs(match_id))
+
+
+@app.route("/agent/runs/<int:run_id>", methods=["GET"])
+def get_agent_run(run_id):
+    run = db.get_agent_run(run_id)
+    if not run:
+        return jsonify({"error": "Run not found"}), 404
+    return jsonify(run)
+
+
+@app.route("/health")
+def health():
+    return jsonify({"status": "ok"})
 
 
 @app.errorhandler(413)

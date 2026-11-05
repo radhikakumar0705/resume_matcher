@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  # Ollama runs on the host machine. Docker Desktop's Kubernetes resolves
+  # host.docker.internal to it; on other clusters, point this at an Ollama service.
+  OLLAMA_URL: "http://host.docker.internal:11434"
+  OLLAMA_MODEL: "llama3.2"
+  AGENT_MODEL: "qwen2.5:7b"
+  DB_PATH: "/data/resume_matcher.db"

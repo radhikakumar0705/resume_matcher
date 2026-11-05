@@ -28,3 +28,14 @@ export const listMatches = () => request("/matches");
 export const deleteMatch = (id) => request(`/matches/${id}`, { method: "DELETE" });
 
 export const resumeUrl = (id) => `${API_URL}/matches/${id}/resume`;
+
+export const startAgentRun = (matchId) =>
+  request("/agent/runs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ match_id: matchId }),
+  });
+
+export const getAgentRun = (id) => request(`/agent/runs/${id}`);
+
+export const listAgentRuns = () => request("/agent/runs");

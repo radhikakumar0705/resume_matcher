@@ -1,0 +1,39 @@
+# Run the whole site: docker compose up --build  ->  http://localhost:8080
+# (another port: WEB_PORT=8085 docker compose up --build)
+#
+# AI features use Ollama running on your machine (outside Docker). Start it
+# with `ollama serve` and pull the models:
+#   ollama pull llama3.2      # suggestions
+#   ollama pull qwen2.5:7b    # tailoring agent
+services:
+  backend:
+    build: ./backend
+    image: resume-matcher-backend:1.0
+    environment:
+      OLLAMA_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: llama3.2
+      AGENT_MODEL: qwen2.5:7b
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # needed on Linux; Docker Desktop has it built in
+    volumes:
+      - backend-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    image: resume-matcher-frontend:1.0
+    ports:
+      - "127.0.0.1:${WEB_PORT:-8080}:80"   # WEB_PORT=8085 docker compose up  if 8080 is taken
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  backend-data:

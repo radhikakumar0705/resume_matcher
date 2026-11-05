@@ -5,11 +5,12 @@ import MatchForm from "./MatchForm";
 import Result from "./Result";
 import History from "./History";
 import Dashboard from "./Dashboard";
+import Agent from "./Agent";
 import { listMatches } from "./api";
 import { useRoute } from "./router";
 
 function App() {
-  const route = useRoute();
+  const { route, params } = useRoute();
   const [matches, setMatches] = useState(null);
   const [matchesError, setMatchesError] = useState("");
   const [result, setResult] = useState(null);
@@ -53,6 +54,8 @@ function App() {
         )}
       </div>
     );
+  } else if (route === "agent") {
+    page = <Agent params={params} />;
   } else if (route === "dashboard") {
     page = <Dashboard matches={matches} error={matchesError} />;
   } else if (route === "history") {

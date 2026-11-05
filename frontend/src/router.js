@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 
-// Minimal hash router: "#/dashboard" -> "dashboard"; "" or "#/" -> "home"
-const current = () => window.location.hash.replace(/^#\/?/, "") || "home";
+// Minimal hash router: "#/agent?match=3" -> { route: "agent", params: { match: "3" } }
+const current = () => {
+  const [path, query = ""] = window.location.hash.replace(/^#\/?/, "").split("?");
+  return { route: path || "home", params: Object.fromEntries(new URLSearchParams(query)) };
+};
 
 export function useRoute() {
-  const [route, setRoute] = useState(current);
+  const [state, setState] = useState(current);
   useEffect(() => {
     const onChange = () => {
-      setRoute(current());
+      setState(current());
       window.scrollTo({ top: 0 });
     };
     window.addEventListener("hashchange", onChange);
     return () => window.removeEventListener("hashchange", onChange);
   }, []);
-  return route;
+  return state;
 }
 
 export const navigate = (route) => {

@@ -82,6 +82,12 @@ function Result({ data, onSuggestions }) {
           <h4>Missing skills <span className="count">{data.missing_skills.length}</span></h4>
           <SkillChips skills={data.missing_skills} kind="missing" empty="None. Every listed skill is covered." />
         </div>
+
+        {data.id != null && (
+          <a href={`#/agent?match=${data.id}`} className="pill agent-cta">
+            Tailor this resume with the AI agent →
+          </a>
+        )}
       </div>
 
       <Suggestions match={data} onGenerated={onSuggestions} />

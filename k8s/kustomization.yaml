@@ -1,0 +1,9 @@
+# Deploy everything: kubectl apply -k k8s
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: resume-matcher
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - backend.yaml
+  - frontend.yaml

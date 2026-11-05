@@ -1,0 +1,8 @@
+venv/
+data/
+uploads/
+**/__pycache__/
+*.pyc
+.env
+Dockerfile
+.dockerignore

@@ -1,0 +1,42 @@
+# nginx serving the built React site and proxying /api to the backend.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels: { app: resume-matcher, component: frontend }
+spec:
+  replicas: 2
+  selector:
+    matchLabels: { app: resume-matcher, component: frontend }
+  template:
+    metadata:
+      labels: { app: resume-matcher, component: frontend }
+    spec:
+      containers:
+        - name: frontend
+          image: resume-matcher-frontend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits: { cpu: 500m, memory: 128Mi }
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /, port: 80 }
+            periodSeconds: 20
+---
+# Docker Desktop exposes LoadBalancer services on localhost: http://localhost:8086
+# (8086 rather than 8080 so it can run alongside docker compose)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: LoadBalancer
+  selector: { app: resume-matcher, component: frontend }
+  ports:
+    - port: 8086
+      targetPort: 80

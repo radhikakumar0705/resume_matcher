@@ -4,6 +4,7 @@ import Logo from "./Logo";
 export const PAGES = [
   { route: "home", label: "home", blurb: "Start here" },
   { route: "match", label: "new match", blurb: "Score a resume against a job" },
+  { route: "agent", label: "agent", blurb: "Let AI tailor a resume to a job" },
   { route: "dashboard", label: "dashboard", blurb: "Trends across every match" },
   { route: "history", label: "history", blurb: "Every saved resume and job" },
 ];

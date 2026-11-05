@@ -1,0 +1,72 @@
+# Flask API + embedding model + tailoring agent.
+# Runs as a single replica: matches and agent runs live in SQLite on a
+# ReadWriteOnce volume, which only one pod can write to safely.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels: { app: resume-matcher, component: backend }
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate   # the old pod must release the volume before the new one mounts it
+  selector:
+    matchLabels: { app: resume-matcher, component: backend }
+  template:
+    metadata:
+      labels: { app: resume-matcher, component: backend }
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001     # lets the non-root user write to the volume
+      containers:
+        - name: backend
+          image: resume-matcher-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          envFrom:
+            - configMapRef: { name: backend-config }
+          volumeMounts:
+            - { name: data, mountPath: /data }
+          resources:
+            requests: { cpu: 250m, memory: 768Mi }
+            limits: { cpu: "2", memory: 2Gi }
+          # Loading the embedding model takes a while on first start
+          startupProbe:
+            httpGet: { path: /health, port: 5000 }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /health, port: 5000 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 5000 }
+            periodSeconds: 20
+            timeoutSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: backend-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend   # nginx proxies /api to http://backend:5000
+spec:
+  selector: { app: resume-matcher, component: backend }
+  ports:
+    - port: 5000
+      targetPort: 5000
